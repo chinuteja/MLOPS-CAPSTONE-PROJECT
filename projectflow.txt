@@ -7,6 +7,7 @@
 5. cookiecutter -c v1 https://github.com/drivendata/cookiecutter-data-science
 6. Rename src.models -> src.model
 7. git add - commit - push
+from root folder do pip install -e .
 
 -------------------------Setup MLFlow on Dagshub---------------------------
 8. Go to: https://dagshub.com/dashboard
