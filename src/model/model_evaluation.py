@@ -5,36 +5,41 @@ import json
 import warnings
 import os
 from dotenv import load_dotenv
-load_dotenv()
 
 from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score
 
 import mlflow
 import mlflow.sklearn
-import dagshub
 
 from src.logger import logging
 
 warnings.filterwarnings("ignore")
 
 # ---------------------------------------------------------
-# DAGSHUB + MLFLOW SETUP
+# LOAD ENV VARIABLES
 # ---------------------------------------------------------
-dagshub_token = os.getenv("DAGSHUB_TOKEN")
 
+load_dotenv()
 
 repo_owner = os.getenv("repo_owner")
 repo_name = os.getenv("repo_name")
+dagshub_token = os.getenv("CAPSTONE_TEST")
 
-# dagshub.init(repo_owner=repo_owner, repo_name=repo_name, mlflow=True)
+# ---------------------------------------------------------
+# DAGSHUB + MLFLOW SETUP
+# ---------------------------------------------------------
 
-
+if dagshub_token:
+    os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_token
+    os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
 
 try:
     import dagshub
-    dagshub.init(repo_owner=repo_owner,
-                 repo_name=repo_name,
-                 mlflow=True)
+    dagshub.init(
+        repo_owner=repo_owner,
+        repo_name=repo_name,
+        mlflow=True
+    )
 except Exception:
     print("Skipping Dagshub initialization in CI")
 
@@ -48,8 +53,9 @@ mlflow.set_experiment("my-dvc-pipeline")
 # FUNCTIONS
 # ---------------------------------------------------------
 
+
 def load_model(file_path: str):
-    """Load trained model."""
+    """Load trained model"""
     try:
         with open(file_path, "rb") as file:
             model = pickle.load(file)
@@ -63,7 +69,7 @@ def load_model(file_path: str):
 
 
 def load_data(file_path: str) -> pd.DataFrame:
-    """Load dataset."""
+    """Load dataset"""
     try:
         df = pd.read_csv(file_path)
 
@@ -76,7 +82,8 @@ def load_data(file_path: str) -> pd.DataFrame:
 
 
 def evaluate_model(model, X_test, y_test):
-    """Evaluate model performance."""
+    """Evaluate model performance"""
+
     try:
 
         y_pred = model.predict(X_test)
@@ -99,7 +106,8 @@ def evaluate_model(model, X_test, y_test):
 
 
 def save_metrics(metrics: dict, path: str):
-    """Save metrics to JSON."""
+    """Save metrics to JSON"""
+
     try:
 
         os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -115,8 +123,11 @@ def save_metrics(metrics: dict, path: str):
 
 
 def save_model_info(run_id: str, artifact_path: str, path: str):
-    """Save run information."""
+    """Save experiment run information"""
+
     try:
+
+        os.makedirs(os.path.dirname(path), exist_ok=True)
 
         model_info = {
             "run_id": run_id,
@@ -137,15 +148,16 @@ def save_model_info(run_id: str, artifact_path: str, path: str):
 # MAIN PIPELINE
 # ---------------------------------------------------------
 
+
 def main():
 
     with mlflow.start_run() as run:
 
         try:
 
-            # -------------------------------------------------
+            # -----------------------------------------------
             # LOAD MODEL + DATA
-            # -------------------------------------------------
+            # -----------------------------------------------
 
             model = load_model("models/model.pkl")
 
@@ -154,27 +166,27 @@ def main():
             X_test = test_df.iloc[:, :-1]
             y_test = test_df.iloc[:, -1]
 
-            # -------------------------------------------------
+            # -----------------------------------------------
             # MODEL EVALUATION
-            # -------------------------------------------------
+            # -----------------------------------------------
 
             metrics = evaluate_model(model, X_test, y_test)
 
-            # -------------------------------------------------
-            # SAVE METRICS
-            # -------------------------------------------------
+            # -----------------------------------------------
+            # SAVE METRICS LOCALLY
+            # -----------------------------------------------
 
             save_metrics(metrics, "reports/metrics.json")
 
-            # -------------------------------------------------
+            # -----------------------------------------------
             # LOG METRICS TO MLFLOW
-            # -------------------------------------------------
+            # -----------------------------------------------
 
             mlflow.log_metrics(metrics)
 
-            # -------------------------------------------------
-            # LOG PARAMETERS
-            # -------------------------------------------------
+            # -----------------------------------------------
+            # LOG MODEL PARAMETERS
+            # -----------------------------------------------
 
             if hasattr(model, "get_params"):
 
@@ -183,9 +195,9 @@ def main():
                 for key, value in params.items():
                     mlflow.log_param(key, value)
 
-            # -------------------------------------------------
-            # LOG MODEL TO MLFLOW
-            # -------------------------------------------------
+            # -----------------------------------------------
+            # LOG MODEL
+            # -----------------------------------------------
 
             mlflow.sklearn.log_model(
                 sk_model=model,
@@ -194,9 +206,9 @@ def main():
 
             logging.info("Model logged to MLflow")
 
-            # -------------------------------------------------
-            # SAVE EXPERIMENT INFO
-            # -------------------------------------------------
+            # -----------------------------------------------
+            # SAVE RUN INFO
+            # -----------------------------------------------
 
             save_model_info(
                 run.info.run_id,
@@ -204,9 +216,9 @@ def main():
                 "reports/experiment_info.json"
             )
 
-            # -------------------------------------------------
+            # -----------------------------------------------
             # LOG METRICS FILE AS ARTIFACT
-            # -------------------------------------------------
+            # -----------------------------------------------
 
             mlflow.log_artifact("reports/metrics.json")
 
