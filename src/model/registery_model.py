@@ -1,14 +1,38 @@
+# ---------------------------------------------------------
+# IMPORTS
+# ---------------------------------------------------------
+
+import os
 import pickle
+from dotenv import load_dotenv
+
 import mlflow
 import mlflow.sklearn
 import dagshub
-import os
 from mlflow.tracking import MlflowClient
-from dotenv import load_dotenv
+
+
+# ---------------------------------------------------------
+# LOAD ENV VARIABLES
+# ---------------------------------------------------------
+
 load_dotenv()
 
 repo_owner = os.getenv("repo_owner")
 repo_name = os.getenv("repo_name")
+dagshub_token = os.getenv("CAPSTONE_TEST")
+
+if not dagshub_token:
+    raise EnvironmentError("CAPSTONE_TEST environment variable is not set")
+
+# Set authentication for DagsHub MLflow
+os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_token
+os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
+
+
+# ---------------------------------------------------------
+# DAGSHUB + MLFLOW SETUP
+# ---------------------------------------------------------
 
 dagshub.init(repo_owner=repo_owner, repo_name=repo_name, mlflow=True)
 
@@ -18,36 +42,43 @@ mlflow.set_tracking_uri(
 
 mlflow.set_experiment("my-dvc-pipeline")
 
-# load local model
+
+# ---------------------------------------------------------
+# LOAD TRAINED MODEL
+# ---------------------------------------------------------
+
 with open("models/model.pkl", "rb") as f:
     model = pickle.load(f)
 
-# create a new MLflow run
-# 1. Start the run
+
+# ---------------------------------------------------------
+# MODEL REGISTRATION PIPELINE
+# ---------------------------------------------------------
+
 with mlflow.start_run() as run:
-    
-    # 2. Log and Register the model
-    # This creates a new version of "my_model_new"
+
+    # Log model and register it
     model_info = mlflow.sklearn.log_model(
         sk_model=model,
         artifact_path="model",
         registered_model_name="my_model_new"
     )
 
-    # 3. Use the Client to transition the version to a Stage
+    # Create MLflow client
     client = MlflowClient()
-    
-    # Get the version number that was just created
+
+    # Get model version created during registration
     model_version = model_info.registered_model_version
-    
+
+    # Move model to Staging
     client.transition_model_version_stage(
         name="my_model_new",
         version=model_version,
-        stage="Staging",  # Fixed the typo here
+        stage="Staging",
         archive_existing_versions=False
     )
-    
-    # 4. Set tags on the model version (if needed)
+
+    # Add tag to the model version
     client.set_model_version_tag(
         name="my_model_new",
         version=model_version,
