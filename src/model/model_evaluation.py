@@ -23,7 +23,7 @@ warnings.filterwarnings("ignore")
 
 # for remote tracking with dagshub mlflow
 dagshub_token = os.getenv("CAPSTONE_TEST")
-print(f"Using DAGSHUB token: {dagshub_token}")
+
 if not dagshub_token:
     raise EnvironmentError("CAPSTONE_TEST environment variable is not set")
 
@@ -40,7 +40,7 @@ mlflow.set_tracking_uri(
     f"https://dagshub.com/{repo_owner}/{repo_name}.mlflow"
 )
 
-# mlflow.set_experiment("my-dvc-pipeline")
+mlflow.set_experiment("my-dvc-pipeline")
 
 
 # ---------------------------------------------------------
