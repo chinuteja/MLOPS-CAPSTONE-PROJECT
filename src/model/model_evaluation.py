@@ -20,6 +20,8 @@ warnings.filterwarnings("ignore")
 # ---------------------------------------------------------
 # DAGSHUB + MLFLOW SETUP
 # ---------------------------------------------------------
+dagshub_token = os.getenv("DAGSHUB_TOKEN")
+
 
 repo_owner = os.getenv("repo_owner")
 repo_name = os.getenv("repo_name")
