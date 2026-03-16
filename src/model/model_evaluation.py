@@ -23,6 +23,7 @@ warnings.filterwarnings("ignore")
 
 # for remote tracking with dagshub mlflow
 dagshub_token = os.getenv("CAPSTONE_TEST")
+print(f"Using DAGSHUB token: {dagshub_token}")
 if not dagshub_token:
     raise EnvironmentError("CAPSTONE_TEST environment variable is not set")
 
@@ -44,8 +45,7 @@ mlflow.set_tracking_uri(
 
 # ---------------------------------------------------------
 # FUNCTIONS
-# ---------------------------------------------------------
-
+# -------------------------------------------------------
 def load_model(file_path: str):
     """Load trained model."""
     try:
