@@ -26,14 +26,23 @@ dagshub_token = os.getenv("DAGSHUB_TOKEN")
 repo_owner = os.getenv("repo_owner")
 repo_name = os.getenv("repo_name")
 
-dagshub.init(repo_owner=repo_owner, repo_name=repo_name, mlflow=True)
+# dagshub.init(repo_owner=repo_owner, repo_name=repo_name, mlflow=True)
+
+
+
+try:
+    import dagshub
+    dagshub.init(repo_owner=repo_owner,
+                 repo_name=repo_name,
+                 mlflow=True)
+except Exception:
+    print("Skipping Dagshub initialization in CI")
 
 mlflow.set_tracking_uri(
     f"https://dagshub.com/{repo_owner}/{repo_name}.mlflow"
 )
 
 mlflow.set_experiment("my-dvc-pipeline")
-
 
 # ---------------------------------------------------------
 # FUNCTIONS
