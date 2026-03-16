@@ -207,5 +207,7 @@ marimo/_lsp/
 __marimo__/
 data/
 models/
+data/interim/
+data/processed/
 
 credentials.txt
