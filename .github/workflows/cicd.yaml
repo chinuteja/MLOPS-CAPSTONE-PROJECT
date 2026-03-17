@@ -57,5 +57,6 @@ jobs:
           CAPSTONE_TEST: ${{ secrets.CAPSTONE_TEST }}
           repo_owner: chinuteja2008
           repo_name: MLOPS-CAPSTONE-PROJECT
+          TESTING: "true"
         run: |
           python -m unittest tests/test_flask_app.py

@@ -78,7 +78,8 @@ repo_name = os.getenv("repo_name")
 mlflow.set_tracking_uri(
     f"https://dagshub.com/{repo_owner}/{repo_name}.mlflow"
 )
-dagshub.init(repo_owner=repo_owner, repo_name=repo_name, mlflow=True)
+# -- uncomment init when running locally, comment out when running in production
+# dagshub.init(repo_owner=repo_owner, repo_name=repo_name, mlflow=True)
 
 
 # mlflow.set_tracking_uri('https://dagshub.com/vikashdas770/YT-Capstone-Project.mlflow')
