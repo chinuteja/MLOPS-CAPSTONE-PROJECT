@@ -76,6 +76,14 @@ jobs:
         run: |
           python -m unittest tests/test_flask_app.py
 
+      - name: Debug AWS Secrets
+        run: |
+          echo "Access Key Length: ${#AWS_ACCESS_KEY_ID}"
+          echo "Secret Key Length: ${#AWS_SECRET_ACCESS_KEY}"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
       # -------------------------------
       # AWS AUTH (FIXED)
       # -------------------------------
