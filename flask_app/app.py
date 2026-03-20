@@ -1,3 +1,5 @@
+from typing import Set
+
 from flask import Flask, render_template, request
 import mlflow
 import pickle
@@ -70,37 +72,32 @@ def normalize_text(text):
 
     return text
 
-# Below code block is for local use
-# -------------------------------------------------------------------------------------
-
-repo_owner = os.getenv("repo_owner")
-repo_name = os.getenv("repo_name")
-mlflow.set_tracking_uri(
-    f"https://dagshub.com/{repo_owner}/{repo_name}.mlflow"
-)
-# -- uncomment init when running locally, comment out when running in production
-# dagshub.init(repo_owner=repo_owner, repo_name=repo_name, mlflow=True)
-
-
-# mlflow.set_tracking_uri('https://dagshub.com/vikashdas770/YT-Capstone-Project.mlflow')
-# dagshub.init(repo_owner='vikashdas770', repo_name='YT-Capstone-Project', mlflow=True)
-# -------------------------------------------------------------------------------------
 
 # Below code block is for production use
 # -------------------------------------------------------------------------------------
-# Set up DagsHub credentials for MLflow tracking
-# dagshub_token = os.getenv("CAPSTONE_TEST")
-# if not dagshub_token:
-#     raise EnvironmentError("CAPSTONE_TEST environment variable is not set")
-
-# os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_token
-# os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
-
-# dagshub_url = "https://dagshub.com"
-# repo_owner = os.getenv("repo_owner")
-# repo_name = os.getenv("repo_name")
-# # Set up MLflow tracking URI
+#Set up DagsHub credentials for MLflow tracking
+# uncomment the below lines for production, comment out for local testing
+#dagshub_url = "https://dagshub.com"
+# repo_owner = "chinuteja2008"
+# repo_name = "MLOPS-CAPSTONE-PROJECT"
+# dagshub.init(repo_owner='chinuteja2008', repo_name='MLOPS-CAPSTONE-PROJECT', mlflow=True)
 # mlflow.set_tracking_uri(f'{dagshub_url}/{repo_owner}/{repo_name}.mlflow')
+# # tracking_uri = f"{dagshub_url}/{repo_owner}/{repo_name}.mlflow"
+
+dagshub_token = os.getenv("CAPSTONE_TEST")
+repo_owner = os.getenv("repo_owner")
+repo_name = os.getenv("repo_name")
+dagshub_url = "https://dagshub.com"
+if not dagshub_token:
+    raise EnvironmentError("CAPSTONE_TEST environment variable is not set")
+
+os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_token
+os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
+
+tracking_uri = f"{dagshub_url}/{repo_owner}/{repo_name}.mlflow"
+os.environ["MLFLOW_REGISTRY_URI"] = tracking_uri
+# Set up MLflow tracking URI
+mlflow.set_tracking_uri(f'{dagshub_url}/{repo_owner}/{repo_name}.mlflow')
 # --------------------------------------------------------------------------------
 
 
