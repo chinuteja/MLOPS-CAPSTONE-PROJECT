@@ -1,165 +1,166 @@
-name: CI Pipeline
+##### uncomment one by one to enable CI/CD pipeline in GitHub Actions #####
+# name: CI Pipeline
 
-on: push
+# on: push
 
-jobs:
-  project-testing:
-    runs-on: ubuntu-latest
+# jobs:
+#   project-testing:
+#     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
+#       - name: Setup Python
+#         uses: actions/setup-python@v4
+#         with:
+#           python-version: "3.10"
 
-      - name: Cache pip dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+#       - name: Cache pip dependencies
+#         uses: actions/cache@v3
+#         with:
+#           path: ~/.cache/pip
+#           key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+#           restore-keys: |
+#             ${{ runner.os }}-pip-
 
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install dvc
+#       - name: Install dependencies
+#         run: |
+#           pip install -r requirements.txt
+#           pip install dvc
 
-      # -------------------------------
-      # DVC PIPELINE
-      # -------------------------------
-      - name: Run DVC pipeline
-        env:
-          CAPSTONE_TEST: ${{ secrets.CAPSTONE_TEST }}
-          repo_owner: chinuteja2008
-          repo_name: MLOPS-CAPSTONE-PROJECT
-        run: |
-          dvc repro
+#       # -------------------------------
+#       # DVC PIPELINE
+#       # -------------------------------
+#       - name: Run DVC pipeline
+#         env:
+#           CAPSTONE_TEST: ${{ secrets.CAPSTONE_TEST }}
+#           repo_owner: chinuteja2008
+#           repo_name: MLOPS-CAPSTONE-PROJECT
+#         run: |
+#           dvc repro
 
-      # -------------------------------
-      # MODEL TESTS
-      # -------------------------------
-      - name: Run model tests
-        if: success()
-        env:
-          CAPSTONE_TEST: ${{ secrets.CAPSTONE_TEST }}
-          repo_owner: chinuteja2008
-          repo_name: MLOPS-CAPSTONE-PROJECT
-        run: |
-          python -m unittest tests/test_model.py
+#       # -------------------------------
+#       # MODEL TESTS
+#       # -------------------------------
+#       - name: Run model tests
+#         if: success()
+#         env:
+#           CAPSTONE_TEST: ${{ secrets.CAPSTONE_TEST }}
+#           repo_owner: chinuteja2008
+#           repo_name: MLOPS-CAPSTONE-PROJECT
+#         run: |
+#           python -m unittest tests/test_model.py
 
-      # -------------------------------
-      # PROMOTE MODEL
-      # -------------------------------
-      - name: Promote model to production
-        if: success()
-        env:
-          CAPSTONE_TEST: ${{ secrets.CAPSTONE_TEST }}
-          repo_owner: chinuteja2008
-          repo_name: MLOPS-CAPSTONE-PROJECT
-        run: |
-          python scripts/promote_model.py
+#       # -------------------------------
+#       # PROMOTE MODEL
+#       # -------------------------------
+#       - name: Promote model to production
+#         if: success()
+#         env:
+#           CAPSTONE_TEST: ${{ secrets.CAPSTONE_TEST }}
+#           repo_owner: chinuteja2008
+#           repo_name: MLOPS-CAPSTONE-PROJECT
+#         run: |
+#           python scripts/promote_model.py
 
-      # -------------------------------
-      # FLASK TESTS
-      # -------------------------------
-      - name: Run Flask app tests
-        if: success()
-        env:
-          CAPSTONE_TEST: ${{ secrets.CAPSTONE_TEST }}
-          repo_owner: chinuteja2008
-          repo_name: MLOPS-CAPSTONE-PROJECT
-          TESTING: "true"
-        run: |
-          python -m unittest tests/test_flask_app.py
+#       # -------------------------------
+#       # FLASK TESTS
+#       # -------------------------------
+#       - name: Run Flask app tests
+#         if: success()
+#         env:
+#           CAPSTONE_TEST: ${{ secrets.CAPSTONE_TEST }}
+#           repo_owner: chinuteja2008
+#           repo_name: MLOPS-CAPSTONE-PROJECT
+#           TESTING: "true"
+#         run: |
+#           python -m unittest tests/test_flask_app.py
 
-      - name: Debug AWS Secrets
-        run: |
-          echo "Access Key Length: ${#AWS_ACCESS_KEY_ID}"
-          echo "Secret Key Length: ${#AWS_SECRET_ACCESS_KEY}"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#       - name: Debug AWS Secrets
+#         run: |
+#           echo "Access Key Length: ${#AWS_ACCESS_KEY_ID}"
+#           echo "Secret Key Length: ${#AWS_SECRET_ACCESS_KEY}"
+#         env:
+#           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      # -------------------------------
-      # AWS AUTH (FIXED)
-      # -------------------------------
-      - name: Configure AWS Credentials
-        if: success()
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+#       # -------------------------------
+#       # AWS AUTH (FIXED)
+#       # -------------------------------
+#       - name: Configure AWS Credentials
+#         if: success()
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Login to AWS ECR
-        if: success()
-        run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
-          | docker login --username AWS --password-stdin \
-          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+#       - name: Login to AWS ECR
+#         if: success()
+#         run: |
+#           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+#           | docker login --username AWS --password-stdin \
+#           ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
-      # -------------------------------
-      # DOCKER BUILD & PUSH
-      # -------------------------------
-      - name: Build Docker image
-        if: success()
-        run: |
-          docker build -t ${{ secrets.ECR_REPOSITORY }}:latest .
+#       # -------------------------------
+#       # DOCKER BUILD & PUSH
+#       # -------------------------------
+#       - name: Build Docker image
+#         if: success()
+#         run: |
+#           docker build -t ${{ secrets.ECR_REPOSITORY }}:latest .
 
-      - name: Tag Docker image
-        if: success()
-        run: |
-          docker tag ${{ secrets.ECR_REPOSITORY }}:latest \
-          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
+#       - name: Tag Docker image
+#         if: success()
+#         run: |
+#           docker tag ${{ secrets.ECR_REPOSITORY }}:latest \
+#           ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
 
-      - name: Push Docker image to ECR
-        if: success()
-        run: |
-          docker push \
-          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
-      # -------------------------------
-      # 🧪 DEBUG SSH KEY
-      # -------------------------------
-      - name: Debug SSH Key
-        run: |
-          echo "SSH Key Length: ${#EC2_SSH_KEY}"
-        env:
-          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+#       - name: Push Docker image to ECR
+#         if: success()
+#         run: |
+#           docker push \
+#           ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
+#       # -------------------------------
+#       # 🧪 DEBUG SSH KEY
+#       # -------------------------------
+#       - name: Debug SSH Key
+#         run: |
+#           echo "SSH Key Length: ${#EC2_SSH_KEY}"
+#         env:
+#           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
       
-      # -------------------------------
-      # 🚀 DEPLOY TO EC2
-      # -------------------------------
-      - name: Deploy to EC2
-        if: success()
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            echo "🚀 Starting deployment..."
+#       # -------------------------------
+#       # 🚀 DEPLOY TO EC2
+#       # -------------------------------
+#       - name: Deploy to EC2
+#         if: success()
+#         uses: appleboy/ssh-action@v0.1.10
+#         with:
+#           host: ${{ secrets.EC2_HOST }}
+#           username: ${{ secrets.EC2_USER }}
+#           key: ${{ secrets.EC2_SSH_KEY }}
+#           script: |
+#             echo "🚀 Starting deployment..."
 
-            # Login to ECR
-            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
-            | docker login --username AWS --password-stdin \
-            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+#             # Login to ECR
+#             aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+#             | docker login --username AWS --password-stdin \
+#             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
-            # Pull latest image
-            docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
+#             # Pull latest image
+#             docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
 
-            # Stop old container (ignore if not exists)
-            docker stop flask-app || true
-            docker rm flask-app || true
+#             # Stop old container (ignore if not exists)
+#             docker stop flask-app || true
+#             docker rm flask-app || true
 
-            # Run new container (IMPORTANT: env variables added)
-            docker run -d -p 5000:5000 --name flask-app \
-            -e CAPSTONE_TEST=${{ secrets.CAPSTONE_TEST }} \
-            -e repo_owner=chinuteja2008 \
-            -e repo_name=MLOPS-CAPSTONE-PROJECT \
-            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
+#             # Run new container (IMPORTANT: env variables added)
+#             docker run -d -p 5000:5000 --name flask-app \
+#             -e CAPSTONE_TEST=${{ secrets.CAPSTONE_TEST }} \
+#             -e repo_owner=chinuteja2008 \
+#             -e repo_name=MLOPS-CAPSTONE-PROJECT \
+#             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
 
-            echo "✅ Deployment completed!"
+#             echo "✅ Deployment completed!"
