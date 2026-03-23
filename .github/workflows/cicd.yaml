@@ -121,6 +121,14 @@ jobs:
         run: |
           docker push \
           ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
+      # -------------------------------
+      # 🧪 DEBUG SSH KEY
+      # -------------------------------
+      - name: Debug SSH Key
+        run: |
+          echo "SSH Key Length: ${#EC2_SSH_KEY}"
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
       
       # -------------------------------
       # 🚀 DEPLOY TO EC2
